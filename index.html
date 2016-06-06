@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>RPZ</title>
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+
+		<script>
+
+			$(document).ready(function(){
+
+
+
+
+
+				$('.info').click(function(){
+					$('.textInfo').toggleClass("appear");
+					$(".tweets").empty();
+					$(".words").empty();
+					$(".insta").empty();
+					$(".tweetsPic").empty();
+
+				});
+
+				$('.goBack').click(function(){
+					$('.textInfo').toggleClass("appear");
+					$(".tweets").empty();
+					$(".words").empty();
+					$(".insta").empty();
+					$(".tweetsPic").empty();
+				});
+
+			$('.search').click(function(){
+				$('.search').attr('contenteditable','true');
+				$(".search").empty();
+				$(".keyWords").empty();
+				$('.textInfo').removeClass("appear");
+			});
+
+			$('.search').keypress(function(e){ return e.which !=13;});
+
+			$('.search').keydown(function(event){
+    		if(event.keyCode==13){
+       	$('.returnKey').trigger('click');
+    			}
+			});
+
+
+
+
+			$('.returnKey').click(function(){
+				$(".tweets").empty();
+				$(".words").empty();
+				$(".insta").empty();
+				$(".tweetsPic").empty();
+				$(".keyWords").empty();
+				searchTerm= $('.search').html();
+
+
+
+
+					$.getJSON("http://api.wordnik.com:80/v4/word.json/"+searchTerm+"/definitions?limit=200&includeRelated=true&sourceDictionaries=all&useCanonical=false&includeTags=false&api_key=8747bd7c13f20a176b00c0be904052211b53cc150815c1fbc", function(responseWordnik){
+					console.log(responseWordnik);
+					for(var i=0; i<responseWordnik.length; i++){
+						$(".words").append("<p class=words-"+i+" id=words-"+i+">"+responseWordnik[i].text+"</p>");
+
+						var randomX = Math.floor(Math.random()*1000);
+						var randomY = Math.floor(Math.random()*1000);
+						$("#words-"+i).css("top", randomX);
+						$("#words-"+i).css("left", randomY);
+
+						(function(status, i){
+							$("#words-"+i).click(function() {
+								$('.words').css('zIndex',0);
+								$('.tweets').css('zIndex',0);
+								$('.insta').css('zIndex',0);
+								$('.tweetsPic').css('zIndex',0);
+    						$("#words-"+i).css('zIndex',300);
+							});
+						})(responseWordnik[i], i)
+
+
+
+
+						};
+					});
+
+
+
+
+					$.getJSON("http://cooper-union-search-proxy.herokuapp.com/twitter/search/%23"+searchTerm+"", function(responseTweet){
+			        console.log(responseTweet);
+							for(var g=0; g<responseTweet.statuses.length; g++){
+								for(var m=0; m<responseTweet.statuses[g].entities.hashtags.length; m++){
+								$(".tweets").append("<h3 id=tweets-"+g+m+"> #"+responseTweet.statuses[g].entities.hashtags[m].text+"</h3>");
+								var randomX = Math.floor(Math.random()*1000);
+								var randomY = Math.floor(Math.random()*1000);
+								$("#tweets-"+g+m).css("top", randomX);
+								$("#tweets-"+g+m).css("left", randomY);
+								(function(status, m){
+									$("#tweets-"+g+m).click(function() {
+										$('.words').css('zIndex',0);
+										$('.tweets').css('zIndex',0);
+										$('.insta').css('zIndex',0);
+										$('.tweetsPic').css('zIndex',0);
+	    							$("#tweets-"+g+m).css('zIndex',300);
+										});
+								  })(responseTweet.statuses[m], m)
+								};
+							};
+
+			    });
+
+
+					$.getJSON("http://cooper-union-search-proxy.herokuapp.com/twitter/search/%23"+searchTerm+" filter:images", function(responseTwitPic){
+						console.log(responseTwitPic);
+						var z = responseTwitPic.statuses.length;
+						for(var k=0; k<z; k++){
+							$(".tweetsPic").append("<img id=photo-"+k+" src=" + responseTwitPic.statuses[k].entities.media[0].media_url + ">");
+							var randomX = Math.floor(Math.random()*1000);
+							var randomY = Math.floor(Math.random()*1000);
+							$("#photo-"+k).css("top", randomX);
+							$("#photo-"+k).css("left", randomY);
+							(function(status, k){
+								$(".tweetsPic").append("<h2 id=caption class=caption-"+k+">"+ status.text + "</h2>");
+								$("#photo-"+k).hover(function() {
+									console.log(status);
+									$(".caption-"+k).toggleClass("appear");
+								});
+								$("#photo-"+k).click(function() {
+									$('.words').css('zIndex',0);
+									$('.tweets').css('zIndex',0);
+									$('.tweetsPic').css('zIndex',0);
+									$("#photo-"+k).css('zIndex',300);
+								});
+							})(responseTwitPic.statuses[k], k)
+						}
+					});
+
+
+
+					$.getJSON("http://cooper-union-instagram-proxy.herokuapp.com/search/tag/"+searchTerm+"?count=33", function(responseInsta){
+						console.log(responseInsta);
+						for(var h=0; h<15; h++){
+							$(".insta").append("<img id=photo-"+h+" src=" + responseInsta[h].images.standard_resolution.url + "/>");
+
+							var randomX = Math.floor(Math.random()*1000);
+							var randomY = Math.floor(Math.random()*1000);
+							$("#photo-"+h).css("top", randomX);
+							$("#photo-"+h).css("left", randomY);
+
+							(function(status, h){
+                $(".insta").append("<h2 id=caption class=caption-"+h+">"+ responseInsta[h].caption.text +"</h2>");
+                $("#photo-"+h).hover(function() {
+									console.log(status);
+                  $(".caption-"+h).toggleClass("appear");
+                });
+								$("#photo-"+h).click(function() {
+									$('.words').css('zIndex',0);
+									$('.tweets').css('zIndex',0);
+									$('.insta').css('zIndex',0);
+									$('.tweetsPic').css('zIndex',0);
+	    						$("#photo-"+h).css('zIndex',300);
+								});
+              })(responseInsta[h], h)
+						};
+					});
+
+
+
+
+
+
+					});
+      });
+
+
+
+
+
+		</script>
+		<style>
+
+
+img {
+	width : 200px;
+	margin: 30px;
+	position: absolute;;
+
+
+	}
+
+
+	h3 {
+		position: absolute;
+		margin: 50px;
+			}
+
+p {
+	padding: 50px;
+	width : 150px;
+	background-color: gainsboro;
+	margin: 30px;
+	position : absolute;
+
+	}
+
+	h2 {
+		padding: 20px;
+    background-color: blue;
+    color : white;
+    width : 250px;
+		font-size: 14px;
+    display: none;
+			}
+
+
+
+
+
+	.fixed {
+		position: fixed;
+					}
+
+	.search {
+		position: fixed;
+		width : 400px;
+		left : 500px;
+		padding: 30px;
+		background-color: black;
+		color: white;
+					}
+
+	.returnKey {
+						position: fixed;
+						width : 30px;
+						left : 870px;
+						padding: 30px;
+						background-color: black;
+						color: white;
+									}
+
+	.info {
+		font-family: Courier;
+		position: fixed;
+		bottom: 20px;
+		left : 500px;
+		padding: 10px;
+		background-color: black;
+		color: white;
+			}
+
+
+			.textInfo {
+				font-family: Courier;
+				font-size: 14px;
+				border: 1px solid black;
+				width: 460px;
+				left: 500px;
+				bottom: 100px;
+				padding: 15px;
+				position: absolute;
+				display: none;
+					}
+
+
+
+
+body {
+	font-family: sans-serif;
+
+
+	}
+
+	ul {
+		top: 20px;
+		position: absolute;
+		list-style-type:none;
+
+		}
+
+		li {
+			text-decoration: underline;;
+
+			}
+
+
+
+	h1 {
+		font-family: Helvetica Condensed Bold, sans-serif;
+		position: absolute;
+		right: 20px;
+		}
+
+		.democracy .new .progress .queer .woman .race .history .ethnic .gay .masc .resistance .other {
+			position: absolute;
+			}
+
+
+		.goBack {
+			font-size: 10px;
+			text-decoration: underline;
+				}
+
+		.appear {
+			display: block;
+			position: fixed;
+				}
+
+		</style>
+
+	</head>
+	<body>
+		<h1> RPZ </h1>
+		<div class="words"></div>
+		<div class="tweets"></div>
+		<div class="tweetsPic"></div>
+		<div class="insta"></div>
+		<div class="img-tweets"></div>
+		<div class="container">
+			<div class="search">Search one word</div>
+			<div class="returnKey">></div>
+		</div>
+		<div class="info">i</div>
+		<div class="textInfo">
+			RPZ is a project aiming to confront notions and their representations.
+			RPZ is a space where definitions of words/notions juxtaposes with their use on the most recent Twitter and Instagram posts, where content can be easily submitted on Internet by users.
+			Internet benefits both texuality, imagery and interactivity. Nevertheless, does it offer spaces of representation and resistance?
+			To which extend does the potentiality of representation on Internet challenges pre-established definitions, fixed by language?
+
+			<div class="goBack"> Go back </div>
+
+		</div>
+
+		<div class="keyWords">
+			<div class="democracy">democracy</div>
+			<div class="new">new</div>
+			<div class="progress">progress</div>
+			<div class="queer">queer</div>
+			<div class="woman">woman</div>
+			<div class="race">race</div>
+			<div class="history">history</div>
+			<div class="ethnic">ethnic</div>
+			<div class="gay">gay</div>
+			<div class="masc">masc</div>
+			<div class="resistance">resistance</div>
+			<div class="other">other</div>
+		</div>
+
+
+
+	</body>
+</html>
